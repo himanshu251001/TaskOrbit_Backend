@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Organization {
+  id                 String               @id
+  name               String
+  createdAt          DateTime             @default(now())
+  OrganizationMember OrganizationMember[]
+  Project            Project[]
+}
+
+model OrganizationMember {
+  id             String       @id
+  organizationId String
+  userId         String
+  role           OrgRole
+  joinedAt       DateTime     @default(now())
+  Organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  User           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+}
+
+model Project {
+  id             String          @id
+  name           String
+  description    String?
+  organizationId String
+  createdById    String
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime
+  User           User            @relation(fields: [createdById], references: [id])
+  Organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  ProjectMember  ProjectMember[]
+  Task           Task[]
+}
+
+model ProjectMember {
+  id        String      @id
+  projectId String
+  userId    String
+  role      ProjectRole
+  joinedAt  DateTime    @default(now())
+  Project   Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  User      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+}
+
+model Task {
+  id                           String       @id
+  title                        String
+  description                  String?
+  status                       TaskStatus   @default(TODO)
+  priority                     TaskPriority @default(MEDIUM)
+  dueDate                      DateTime?
+  projectId                    String
+  createdById                  String
+  assignedToId                 String?
+  createdAt                    DateTime     @default(now())
+  updatedAt                    DateTime
+  User_Task_assignedToIdToUser User?        @relation("Task_assignedToIdToUser", fields: [assignedToId], references: [id])
+  User_Task_createdByIdToUser  User         @relation("Task_createdByIdToUser", fields: [createdById], references: [id])
+  Project                      Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([assignedToId])
+  @@index([projectId])
+  @@index([projectId, status])
+}
+
+model User {
+  id                           String               @id
+  name                         String?
+  email                        String               @unique
+  passwordHash                 String
+  refreshToken                 String?
+  createdAt                    DateTime             @default(now())
+  updatedAt                    DateTime
+  OrganizationMember           OrganizationMember[]
+  Project                      Project[]
+  ProjectMember                ProjectMember[]
+  Task_Task_assignedToIdToUser Task[]               @relation("Task_assignedToIdToUser")
+  Task_Task_createdByIdToUser  Task[]               @relation("Task_createdByIdToUser")
+}
+
+enum OrgRole {
+  DIRECTOR
+  MANAGER
+  EMPLOYEE
+}
+
+enum ProjectRole {
+  MANAGER
+  LEAD
+  EMPLOYEE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  HIGHEST
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  TESTING
+  COMPLETED
+}
