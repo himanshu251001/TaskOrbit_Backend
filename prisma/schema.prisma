@@ -8,7 +8,7 @@ datasource db {
 }
 
 model Organization {
-  id                 String               @id
+  id                 Int                  @id @default(autoincrement())
   name               String
   createdAt          DateTime             @default(now())
   OrganizationMember OrganizationMember[]
@@ -16,9 +16,9 @@ model Organization {
 }
 
 model OrganizationMember {
-  id             String       @id
-  organizationId String
-  userId         String
+  id             Int          @id @default(autoincrement())
+  organizationId Int
+  userId         Int
   role           OrgRole
   joinedAt       DateTime     @default(now())
   Organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -28,23 +28,30 @@ model OrganizationMember {
 }
 
 model Project {
-  id             String          @id
+  id             Int             @id @default(autoincrement())
   name           String
   description    String?
-  organizationId String
-  createdById    String
+  technologies   String[]        @default([]) @map("Technologies")
+  organizationId Int
+  createdById    Int
+  status         ProjectStatus   @default(PENDING)
   createdAt      DateTime        @default(now())
-  updatedAt      DateTime
+  updatedAt      DateTime        @updatedAt
   User           User            @relation(fields: [createdById], references: [id])
   Organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   ProjectMember  ProjectMember[]
   Task           Task[]
+  client         String
+  Budget         Float?
+  EstimatedHours Int
+  StartDate      DateTime
+  EndDate        DateTime
 }
 
 model ProjectMember {
-  id        String      @id
-  projectId String
-  userId    String
+  id        Int         @id @default(autoincrement())
+  projectId Int
+  userId    Int
   role      ProjectRole
   joinedAt  DateTime    @default(now())
   Project   Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -54,17 +61,18 @@ model ProjectMember {
 }
 
 model Task {
-  id                           String       @id
+  id                           Int          @id @default(autoincrement())
   title                        String
   description                  String?
   status                       TaskStatus   @default(TODO)
   priority                     TaskPriority @default(MEDIUM)
+  workType                     TaskWorkType @default(TASK)
   dueDate                      DateTime?
-  projectId                    String
-  createdById                  String
-  assignedToId                 String?
+  projectId                    Int
+  createdById                  Int
+  assignedToId                 Int?
   createdAt                    DateTime     @default(now())
-  updatedAt                    DateTime
+  updatedAt                    DateTime     @updatedAt
   User_Task_assignedToIdToUser User?        @relation("Task_assignedToIdToUser", fields: [assignedToId], references: [id])
   User_Task_createdByIdToUser  User         @relation("Task_createdByIdToUser", fields: [createdById], references: [id])
   Project                      Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -75,18 +83,30 @@ model Task {
 }
 
 model User {
-  id                           String               @id
+  id                           Int                  @id @default(autoincrement())
   name                         String?
   email                        String               @unique
   passwordHash                 String
   refreshToken                 String?
   createdAt                    DateTime             @default(now())
-  updatedAt                    DateTime
+  updatedAt                    DateTime             @updatedAt
   OrganizationMember           OrganizationMember[]
   Project                      Project[]
   ProjectMember                ProjectMember[]
   Task_Task_assignedToIdToUser Task[]               @relation("Task_assignedToIdToUser")
   Task_Task_createdByIdToUser  Task[]               @relation("Task_createdByIdToUser")
+  isAdmin                      Boolean              @default(false)
+}
+
+model AuditLog {
+  id         Int                 @id @default(autoincrement())
+  action     ImpersonationAction
+  actorId    Int
+  targetId   Int
+  metadata   Json?
+  created_at DateTime            @default(now())
+
+  @@map("audit_logs")
 }
 
 enum OrgRole {
@@ -101,6 +121,14 @@ enum ProjectRole {
   EMPLOYEE
 }
 
+enum ProjectStatus {
+  PENDING
+  ACTIVE
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+}
+
 enum TaskPriority {
   LOW
   MEDIUM
@@ -108,9 +136,22 @@ enum TaskPriority {
   HIGHEST
 }
 
+enum TaskWorkType {
+  STORY
+  BUG
+  TASK
+  EPIC
+}
+
 enum TaskStatus {
   TODO
   IN_PROGRESS
   TESTING
   COMPLETED
+}
+
+enum ImpersonationAction {
+  IMPERSONATE
+  UPDATE
+  REVERT_IMPERSONATE
 }

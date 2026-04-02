@@ -7,7 +7,6 @@ import { getProjects } from '../models/projectModel.js';
 
 router.get('/', async (req, res) => {
     const userId = req.user.id;
-    console.log("Fetching projects for user:", userId);
     try {
         const projects = await getProjects(userId);
         res.json(projects);

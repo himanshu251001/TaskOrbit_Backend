@@ -17,11 +17,11 @@ app.use(passport.initialize());
 
 const Logger = (req, res, next) => {
 
-    console.log(`${req.method} ${req.url}`);
+    console.log(`${req.method} ${req.url}  ${JSON.stringify(req.body)}`);
     next();
 }
 
-app.use(Logger);
+// app.use(Logger);
 
 app.use('/auth', authRoutes);
 
