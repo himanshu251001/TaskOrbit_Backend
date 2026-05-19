@@ -8,11 +8,7 @@ datasource db {
 }
 
 model Organization {
-<<<<<<< HEAD
-  id                 String               @id
-=======
   id                 Int                  @id @default(autoincrement())
->>>>>>> ac29622 (Initial commit)
   name               String
   createdAt          DateTime             @default(now())
   OrganizationMember OrganizationMember[]
@@ -20,15 +16,9 @@ model Organization {
 }
 
 model OrganizationMember {
-<<<<<<< HEAD
-  id             String       @id
-  organizationId String
-  userId         String
-=======
   id             Int          @id @default(autoincrement())
   organizationId Int
   userId         Int
->>>>>>> ac29622 (Initial commit)
   role           OrgRole
   joinedAt       DateTime     @default(now())
   Organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -38,25 +28,6 @@ model OrganizationMember {
 }
 
 model Project {
-<<<<<<< HEAD
-  id             String          @id
-  name           String
-  description    String?
-  organizationId String
-  createdById    String
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime
-  User           User            @relation(fields: [createdById], references: [id])
-  Organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  ProjectMember  ProjectMember[]
-  Task           Task[]
-}
-
-model ProjectMember {
-  id        String      @id
-  projectId String
-  userId    String
-=======
   id             Int             @id @default(autoincrement())
   name           String
   description    String
@@ -80,7 +51,6 @@ model ProjectMember {
   id        Int         @id @default(autoincrement())
   projectId Int
   userId    Int
->>>>>>> ac29622 (Initial commit)
   role      ProjectRole
   joinedAt  DateTime    @default(now())
   Project   Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -90,23 +60,11 @@ model ProjectMember {
 }
 
 model Task {
-<<<<<<< HEAD
-  id                           String       @id
-=======
   id                           Int          @id @default(autoincrement())
->>>>>>> ac29622 (Initial commit)
   title                        String
   description                  String?
   status                       TaskStatus   @default(TODO)
   priority                     TaskPriority @default(MEDIUM)
-<<<<<<< HEAD
-  dueDate                      DateTime?
-  projectId                    String
-  createdById                  String
-  assignedToId                 String?
-  createdAt                    DateTime     @default(now())
-  updatedAt                    DateTime
-=======
   workType                     TaskWorkType @default(TASK)
   dueDate                      DateTime?
   projectId                    Int
@@ -114,7 +72,6 @@ model Task {
   assignedToId                 Int?
   createdAt                    DateTime     @default(now())
   updatedAt                    DateTime     @updatedAt
->>>>>>> ac29622 (Initial commit)
   User_Task_assignedToIdToUser User?        @relation("Task_assignedToIdToUser", fields: [assignedToId], references: [id])
   User_Task_createdByIdToUser  User         @relation("Task_createdByIdToUser", fields: [createdById], references: [id])
   Project                      Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -125,24 +82,12 @@ model Task {
 }
 
 model User {
-<<<<<<< HEAD
-  id                           String               @id
-=======
   id                           Int                  @id @default(autoincrement())
->>>>>>> ac29622 (Initial commit)
   name                         String?
   email                        String               @unique
   passwordHash                 String
   refreshToken                 String?
   createdAt                    DateTime             @default(now())
-<<<<<<< HEAD
-  updatedAt                    DateTime
-  OrganizationMember           OrganizationMember[]
-  Project                      Project[]
-  ProjectMember                ProjectMember[]
-  Task_Task_assignedToIdToUser Task[]               @relation("Task_assignedToIdToUser")
-  Task_Task_createdByIdToUser  Task[]               @relation("Task_createdByIdToUser")
-=======
   updatedAt                    DateTime             @updatedAt
   OrganizationMember           OrganizationMember[]
   // User additional fields
@@ -175,7 +120,6 @@ model AuditLog {
   metadata   Json?
   created_at DateTime            @default(now())
   @@map("audit_logs")
->>>>>>> ac29622 (Initial commit)
 }
 
 enum OrgRole {
@@ -190,8 +134,6 @@ enum ProjectRole {
   EMPLOYEE
 }
 
-<<<<<<< HEAD
-=======
 enum ProjectStatus {
   PENDING
   ACTIVE
@@ -200,7 +142,6 @@ enum ProjectStatus {
   CANCELLED
 }
 
->>>>>>> ac29622 (Initial commit)
 enum TaskPriority {
   LOW
   MEDIUM
@@ -208,8 +149,6 @@ enum TaskPriority {
   HIGHEST
 }
 
-<<<<<<< HEAD
-=======
 enum TaskWorkType {
   STORY
   BUG
@@ -217,15 +156,12 @@ enum TaskWorkType {
   EPIC
 }
 
->>>>>>> ac29622 (Initial commit)
 enum TaskStatus {
   TODO
   IN_PROGRESS
   TESTING
   COMPLETED
 }
-<<<<<<< HEAD
-=======
 
 enum ImpersonationAction {
   IMPERSONATE
@@ -319,4 +255,3 @@ enum EventStatus {
   cancelled
   completed
 }
->>>>>>> ac29622 (Initial commit)
