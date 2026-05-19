@@ -13,3 +13,6 @@ node_modules
 /.agents
 /.specify
 /.access 
+/seed-chats.ts
+/test_db.js
+/test-chat.js
