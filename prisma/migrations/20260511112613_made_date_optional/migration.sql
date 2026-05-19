@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Project" ALTER COLUMN "StartDate" DROP NOT NULL,
+ALTER COLUMN "EndDate" DROP NOT NULL;

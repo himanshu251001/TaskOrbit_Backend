@@ -1,20 +1,15 @@
 
 import express from 'express';
 const router = express.Router();
-import { getProjects } from '../models/projectModel.js';
+import { getAllProjects, getProjectById, deleteProjectById, updateProjects, createProjects, getProjectStatus,getProjectMembers } from '../controllers/projectController.js';
 
-
-
-router.get('/', async (req, res) => {
-    const userId = req.user.id;
-    console.log("Fetching projects for user:", userId);
-    try {
-        const projects = await getProjects(userId);
-        res.json(projects);
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch projects' });
-    }
-});
+router.get('/', getAllProjects);
+router.delete('/:id', deleteProjectById);
+router.patch('/:id', updateProjects);
+router.post('/', createProjects);
+router.get('/statusTypes', getProjectStatus);
+router.get('/:id/members', getProjectMembers);
+router.get('/:id', getProjectById);
 
 
 export default router;

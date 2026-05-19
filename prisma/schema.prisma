@@ -8,7 +8,11 @@ datasource db {
 }
 
 model Organization {
+<<<<<<< HEAD
   id                 String               @id
+=======
+  id                 Int                  @id @default(autoincrement())
+>>>>>>> ac29622 (Initial commit)
   name               String
   createdAt          DateTime             @default(now())
   OrganizationMember OrganizationMember[]
@@ -16,9 +20,15 @@ model Organization {
 }
 
 model OrganizationMember {
+<<<<<<< HEAD
   id             String       @id
   organizationId String
   userId         String
+=======
+  id             Int          @id @default(autoincrement())
+  organizationId Int
+  userId         Int
+>>>>>>> ac29622 (Initial commit)
   role           OrgRole
   joinedAt       DateTime     @default(now())
   Organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -28,6 +38,7 @@ model OrganizationMember {
 }
 
 model Project {
+<<<<<<< HEAD
   id             String          @id
   name           String
   description    String?
@@ -45,6 +56,31 @@ model ProjectMember {
   id        String      @id
   projectId String
   userId    String
+=======
+  id             Int             @id @default(autoincrement())
+  name           String
+  description    String
+  technologies   String[]        @default([]) @map("Technologies")
+  organizationId Int
+  createdById    Int
+  status         ProjectStatus   @default(PENDING)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  Organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  ProjectMember  ProjectMember[]
+  Task           Task[]
+  client         String
+  Budget         Float?
+  EstimatedHours Int
+  StartDate      DateTime?
+  EndDate        DateTime?
+}
+
+model ProjectMember {
+  id        Int         @id @default(autoincrement())
+  projectId Int
+  userId    Int
+>>>>>>> ac29622 (Initial commit)
   role      ProjectRole
   joinedAt  DateTime    @default(now())
   Project   Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -54,17 +90,31 @@ model ProjectMember {
 }
 
 model Task {
+<<<<<<< HEAD
   id                           String       @id
+=======
+  id                           Int          @id @default(autoincrement())
+>>>>>>> ac29622 (Initial commit)
   title                        String
   description                  String?
   status                       TaskStatus   @default(TODO)
   priority                     TaskPriority @default(MEDIUM)
+<<<<<<< HEAD
   dueDate                      DateTime?
   projectId                    String
   createdById                  String
   assignedToId                 String?
   createdAt                    DateTime     @default(now())
   updatedAt                    DateTime
+=======
+  workType                     TaskWorkType @default(TASK)
+  dueDate                      DateTime?
+  projectId                    Int
+  createdById                  Int
+  assignedToId                 Int?
+  createdAt                    DateTime     @default(now())
+  updatedAt                    DateTime     @updatedAt
+>>>>>>> ac29622 (Initial commit)
   User_Task_assignedToIdToUser User?        @relation("Task_assignedToIdToUser", fields: [assignedToId], references: [id])
   User_Task_createdByIdToUser  User         @relation("Task_createdByIdToUser", fields: [createdById], references: [id])
   Project                      Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -75,18 +125,57 @@ model Task {
 }
 
 model User {
+<<<<<<< HEAD
   id                           String               @id
+=======
+  id                           Int                  @id @default(autoincrement())
+>>>>>>> ac29622 (Initial commit)
   name                         String?
   email                        String               @unique
   passwordHash                 String
   refreshToken                 String?
   createdAt                    DateTime             @default(now())
+<<<<<<< HEAD
   updatedAt                    DateTime
   OrganizationMember           OrganizationMember[]
   Project                      Project[]
   ProjectMember                ProjectMember[]
   Task_Task_assignedToIdToUser Task[]               @relation("Task_assignedToIdToUser")
   Task_Task_createdByIdToUser  Task[]               @relation("Task_createdByIdToUser")
+=======
+  updatedAt                    DateTime             @updatedAt
+  OrganizationMember           OrganizationMember[]
+  // User additional fields
+  phoneNumber                  String?
+  profileImage                 String?
+  bio                          String?
+  designation                  String?
+  location                     String?
+  dateOfBirth                  DateTime?
+  // Organization Member fields
+  
+  ProjectMember                ProjectMember[]
+  Task_Task_assignedToIdToUser Task[]               @relation("Task_assignedToIdToUser")
+  Task_Task_createdByIdToUser  Task[]               @relation("Task_createdByIdToUser")
+  isAdmin                      Boolean              @default(false)
+
+  // Chat relations
+  chatGroups       ChatGroupMember[]
+  sentMessages     ChatMessage[]     @relation("SentMessages")
+  receivedMessages ChatMessage[]     @relation("ReceivedMessages")
+  organizedEvents     Event[]           @relation("OrganizedEvents")
+  participatedEvents  Event[]           @relation("EventParticipants")
+}
+
+model AuditLog {
+  id         Int                 @id @default(autoincrement())
+  action     ImpersonationAction
+  actorId    Int
+  targetId   Int
+  metadata   Json?
+  created_at DateTime            @default(now())
+  @@map("audit_logs")
+>>>>>>> ac29622 (Initial commit)
 }
 
 enum OrgRole {
@@ -101,6 +190,17 @@ enum ProjectRole {
   EMPLOYEE
 }
 
+<<<<<<< HEAD
+=======
+enum ProjectStatus {
+  PENDING
+  ACTIVE
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+}
+
+>>>>>>> ac29622 (Initial commit)
 enum TaskPriority {
   LOW
   MEDIUM
@@ -108,9 +208,115 @@ enum TaskPriority {
   HIGHEST
 }
 
+<<<<<<< HEAD
+=======
+enum TaskWorkType {
+  STORY
+  BUG
+  TASK
+  EPIC
+}
+
+>>>>>>> ac29622 (Initial commit)
 enum TaskStatus {
   TODO
   IN_PROGRESS
   TESTING
   COMPLETED
 }
+<<<<<<< HEAD
+=======
+
+enum ImpersonationAction {
+  IMPERSONATE
+  UPDATE
+  REVERT_IMPERSONATE
+}
+
+// ============================================================
+//  Chat Models
+// ============================================================
+
+/// A group chat room. Users join/leave via ChatGroupMember.
+model ChatGroup {
+  id        Int               @id @default(autoincrement())
+  name      String            @unique
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  members   ChatGroupMember[]
+  messages  ChatMessage[]     @relation("GroupMessages")
+
+  @@map("chat_groups")
+}
+
+/// Many-to-many join table between User and ChatGroup.
+model ChatGroupMember {
+  id        Int       @id @default(autoincrement())
+  groupId   Int
+  userId    Int
+  joinedAt  DateTime  @default(now())
+  group     ChatGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@map("chat_group_members")
+}
+
+/// A single chat message — works for both DMs and group messages.
+/// • Private message: senderId + receiverId are set, groupId is null
+/// • Group message:   senderId + groupId are set, receiverId is null
+model ChatMessage {
+  id         Int        @id @default(autoincrement())
+  content    String
+  senderId   Int
+  receiverId Int?
+  groupId    Int?
+  createdAt  DateTime   @default(now())
+
+  sender   User       @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User?      @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  group    ChatGroup?  @relation("GroupMessages", fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([groupId])
+  @@index([createdAt])
+  @@map("chat_messages")
+}
+
+model Event {
+  id               Int         @id @default(autoincrement())
+  title            String
+  description      String?
+  event_date       DateTime    @db.Date
+  start_time       DateTime    @db.Time
+  end_time         DateTime    @db.Time
+  location         String?
+  event_type       EventType
+  organizer_id     Int
+  organizer        User        @relation("OrganizedEvents", fields: [organizer_id], references: [id])
+  participants     User[]      @relation("EventParticipants")
+  status           EventStatus @default(scheduled)
+  created_at       DateTime    @default(now())
+  updated_at       DateTime    @updatedAt
+
+  @@map("events")
+  @@index([organizer_id])
+  @@index([start_time])
+}
+
+enum EventType {
+  Meeting
+  Workshop
+  Webinar
+  Conference
+  Training
+  Seminar
+}
+
+enum EventStatus {
+  scheduled
+  cancelled
+  completed
+}
+>>>>>>> ac29622 (Initial commit)

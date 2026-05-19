@@ -1,10 +1,18 @@
 import jwt from 'jsonwebtoken';
 
-const generateAccessToken = (user) => {
+const generateAccessToken = (user, impersonatedBy = null) => {
+    const payload = { id: user.id, grade: user.grade, email: user.email };
+
+
+    if (impersonatedBy) {
+        payload.impersonated_by = impersonatedBy;
+        payload.is_impersonation = true;
+    }
+
     return jwt.sign(
-        { id: user._id, email: user.email }, //payload 
-        process.env.JWT_SECRET, //secret key
-        { expiresIn: process.env.JWT_EXPIRES_IN, algorithm: 'HS256' } //options
+        payload,
+        process.env.JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRES_IN, algorithm: 'HS256' }
     );
 };
 
