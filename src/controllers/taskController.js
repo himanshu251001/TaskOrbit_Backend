@@ -53,7 +53,7 @@ export const createTaskHandler = async (req, res) => {
 		const { title, description, projectId, priority, workType, dueDate, assignToId } = req.body;
 		const createdById = req.user.id;
 
-		if (!title || !projectId || !priority || !workType || !assignToId || !description) {
+		if (!title || !projectId || !priority || !workType || !description) {
 			return res.status(400).json({
 				success: false,
 				error: 'Missing required fields'
@@ -155,7 +155,7 @@ export const getProjectStats = async (req, res) => {
 			return res.status(400).json({ success: false, error: 'Project ID is required' });
 		}
 		const result = await getTaskStatsByProjectId(id);
-		return result;
+		res.json(result);
 	} catch (error) {
 		console.error("Error fetching tasks by project:", error);
 		res.status(500).json({ success: false, error: 'Failed to fetch tasks by project' });

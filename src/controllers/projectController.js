@@ -10,7 +10,10 @@ export const getAllProjects = async (req, res) => {
         await Promise.all(
             projects.map(async (project) => {
                 project.stats = await getTaskStatsByProjectId(project.id);
-                project.progress = (project.stats.completedTasks / project.stats.totalTasks) * 100;
+                const totalTasks = project.stats.totalTasks;
+                project.progress = totalTasks > 0
+                    ? (project.stats.completedTasks / totalTasks) * 100
+                    : 0;
             })
         );
         res.json(projects);
