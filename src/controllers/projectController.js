@@ -1,12 +1,18 @@
 import { getProjects, getProject, deleteProject, updateProject, createProject, addProjectMembers, getprojectMember, removeProjectMembers } from "../models/projectModel.js";
 import { prisma } from "../lib/prisma.ts";
 import { ProjectStatus } from "../../generated/prisma/enums.ts";
-import { Console } from "console";
+import { getTaskStatsByProjectId } from "../models/taskModel.js";
 
 export const getAllProjects = async (req, res) => {
     const userId = req.user.id;
     try {
         const projects = await getProjects(userId);
+        await Promise.all(
+            projects.map(async (project) => {
+                project.stats = await getTaskStatsByProjectId(project.id);
+                project.progress = (project.stats.completedTasks / project.stats.totalTasks) * 100;
+            })
+        );
         res.json(projects);
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch projects' });
@@ -17,6 +23,7 @@ export const getProjectById = async (req, res) => {
     const projectId = req.params.id;
     try {
         const project = await getProject(projectId);
+
         res.json(project);
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch project' });
@@ -140,8 +147,8 @@ export const getProjectStatus = (req, res) => {
 
 export const getProjectMembers = async (req, res) => {
     try {
-        const { projectIds } = req.query;
-        const users = await getprojectMembers(projectIds);
+        const { id } = req.params;
+        const users = await getprojectMember(id);
         res.json(users);
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch project members' });

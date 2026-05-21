@@ -1,4 +1,4 @@
-import { getTasks, getTaskStatsFromDB, createTask, updateTaskModel, getWorkLoadStatsFromDB } from '../models/taskModel.js';
+import { getTasks, getTaskStatsFromDB, createTask, updateTaskModel, getWorkLoadStatsFromDB, getTaskStatsByProjectId } from '../models/taskModel.js';
 import redis from '../utils/redis.js';
 import { TaskWorkType, TaskStatus, TaskPriority } from '../../generated/prisma/enums.ts';
 
@@ -50,13 +50,13 @@ export const getTaskStats = async (req, res) => {
 
 export const createTaskHandler = async (req, res) => {
 	try {
-		const { title, description, projectId, priority, workType, dueDate, assignedToId } = req.body;
+		const { title, description, projectId, priority, workType, dueDate, assignToId } = req.body;
 		const createdById = req.user.id;
 
-		if (!title || !projectId || !priority || !workType || !assignedToId || !description) {
+		if (!title || !projectId || !priority || !workType || !assignToId || !description) {
 			return res.status(400).json({
 				success: false,
-				error: 'Title and projectId are required'
+				error: 'Missing required fields'
 			});
 		}
 
@@ -68,7 +68,7 @@ export const createTaskHandler = async (req, res) => {
 			priority,
 			workType,
 			dueDate,
-			assignedToId: assignedToId ? Number(assignedToId) : null
+			assignedToId: assignToId ? Number(assignToId) : null
 		});
 
 		res.status(201).json({
@@ -114,17 +114,15 @@ export const getTaskStatus = (req, res) => {
 export const updateTask = async (req, res) => {
 	try {
 		const { id } = req.params;
-		console.log("Body:", req.body);
-		const { title, description, priority, workType, dueDate, assignedToId } = req.body;
+		const { title, description, priority, workType, dueDate, assignToId } = req.body;
 		const task = await updateTaskModel(id, {
 			title: title || undefined,
 			description: description || undefined,
 			priority: priority || undefined,
 			workType: workType || undefined,
 			dueDate: dueDate ? new Date(dueDate) : undefined,
-			assignedToId: assignedToId ? Number(assignedToId) : undefined
+			assignedToId: assignToId ? Number(assignToId) : undefined
 		});
-		console.log("Task:", task);
 		res.status(200).json({
 			success: true,
 			message: 'Task updated successfully',
@@ -149,3 +147,17 @@ export const workLoadStats = async (req, res) => {
 		res.status(500).json({ error: 'Failed to fetch task work type stats' });
 	}
 }
+
+export const getProjectStats = async (req, res) => {
+	try {
+		const { id } = req.params;
+		if (!id) {
+			return res.status(400).json({ success: false, error: 'Project ID is required' });
+		}
+		const result = await getTaskStatsByProjectId(id);
+		return result;
+	} catch (error) {
+		console.error("Error fetching tasks by project:", error);
+		res.status(500).json({ success: false, error: 'Failed to fetch tasks by project' });
+	}
+};

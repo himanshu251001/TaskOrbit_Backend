@@ -18,4 +18,3 @@ code = code.replace(regex, (match, type, event, message) => {
 });
 
 fs.writeFileSync(filePath, code);
-console.log('Done!');
