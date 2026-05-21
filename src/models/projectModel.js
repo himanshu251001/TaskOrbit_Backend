@@ -43,7 +43,7 @@ export const deleteProject = async (projectId) => {
 };
 
 export const updateProject = async (projectId, updatedProject) => {
-    
+
     return prisma.project.update({
         where: {
             id: Number(projectId)
@@ -84,12 +84,27 @@ export const removeProjectMembers = async (projectId, userIds) => {
 }
 
 export const getprojectMember = async (projectIds) => {
-    return prisma.projectMember.findMany({
+    const userIds = await prisma.projectMember.findMany({
         where: {
             projectId: Number(projectIds)
         },
-       select:{
-        userId:true
-       }
+        select: {
+            userId: true,
+        }
     });
+    const users = await prisma.user.findMany({
+        where: {
+            id: {
+                in: userIds.map(userId => userId.userId)
+            }
+        },
+        select: {
+            id: true,
+            name: true,
+            email: true,
+            designation: true,
+
+        }
+    });
+    return users;
 }

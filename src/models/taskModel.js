@@ -81,7 +81,6 @@ export const getTasks = async (userId, options = {}) => {
             createdAt: 'desc',
         }
     });
-    console.log(tasks.length);
 
     return tasks.map((task) => {
         const {
@@ -131,8 +130,6 @@ export const getTaskStatsFromDB = async (userId) => {
     let open = 0;
     let inProgress = 0;
     let closed = 0;
-
-    console.log(stats);
 
     stats.forEach((stat) => {
         if (stat.status === 'COMPLETED') {
@@ -223,9 +220,16 @@ export const getWorkLoadStatsFromDB = async (userId) => {
             createdAt: {
                 gte: threeMonthsAgo
             },
-            assignedToId: {
-                in: userIds
-            },
+            OR: [
+                {
+                    assignedToId: {
+                        in: userIds
+                    }
+                },
+                {
+                    assignedToId: null
+                }
+            ],
             Project: {
                 ProjectMember: {
                     some: {
@@ -239,6 +243,7 @@ export const getWorkLoadStatsFromDB = async (userId) => {
         }
     });
 
+
     const userMap = users.reduce((acc, user) => {
         acc[user.id] = {
             id: user.id,
@@ -251,7 +256,19 @@ export const getWorkLoadStatsFromDB = async (userId) => {
     }, {});
 
     stats.forEach(stat => {
-        const user = userMap[stat.assignedToId];
+        const targetId = stat.assignedToId === null ? 'unassigned' : stat.assignedToId;
+
+        if (stat.assignedToId === null && !userMap['unassigned']) {
+            userMap['unassigned'] = {
+                id: 'unassigned',
+                name: 'Not Assigned',
+                designation: '-',
+                completed: 0,
+                totalTasks: 0
+            };
+        }
+
+        const user = userMap[targetId];
         if (user) {
             user.totalTasks += stat._count._all;
             if (stat.status === 'COMPLETED') {
@@ -263,3 +280,18 @@ export const getWorkLoadStatsFromDB = async (userId) => {
     return Object.values(userMap);
 };
 
+export const getTaskStatsByProjectId = async (projectId) => {
+    const tasks = await prisma.task.findMany({
+        where: {
+            projectId: Number(projectId)
+        }
+    });
+
+    const totalTasks = tasks.length;
+    const completedTasks = tasks.filter(task => task.status === 'COMPLETED').length;
+
+    return {
+        totalTasks,
+        completedTasks
+    };
+};
