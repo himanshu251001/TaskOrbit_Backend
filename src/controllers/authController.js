@@ -88,21 +88,25 @@ const registerHandler = async (req, res) => {
 
         const passwordHash = await argon2.hash(password);
 
-        const user = await prisma.user.create({
-            data: {
-                email,
-                name: name,
-                passwordHash,
-                authProvider: 'LOCAL'
-            }
-        });
+        const user = await prisma.$transaction(async (tx) => {
+            const createdUser = await tx.user.create({
+                data: {
+                    email,
+                    name: name,
+                    passwordHash,
+                    authProvider: 'LOCAL'
+                }
+            });
 
-        await prisma.organizationMember.create({
-            data: {
-                organizationId: organization.id,
-                userId: user.id,
-                role: 'EMPLOYEE'
-            }
+            await tx.organizationMember.create({
+                data: {
+                    organizationId: organization.id,
+                    userId: createdUser.id,
+                    role: 'EMPLOYEE'
+                }
+            });
+
+            return createdUser;
         });
 
         const accessToken = generateAccessToken(user);
@@ -316,7 +320,6 @@ const initiateMicrosoftOAuthSignUp = async (req, res) => {
 const microsoftCallback = async (req, res) => {
     const frontendUrl = process.env.FRONTEND_URL;
     try {
-        let options = {};
         const client = getMicrosoftClient();
         const params = client.callbackParams(req);
         const expectedState = req.cookies.oauth_state;
@@ -342,11 +345,11 @@ const microsoftCallback = async (req, res) => {
         res.clearCookie('oauth_verifier');
         res.clearCookie('oauth_action');
 
-        const { sub, email, name } = claims;
+        const { email, name } = claims;
 
         if (!email) {
             return res.redirect(
-                `${frontendUrl}/login?auth=failed&message=Email not provided by Microsoft`
+                `${frontendUrl}/login?auth=failed&message=${encodeURIComponent('Email not provided by Microsoft')}`
             );
         }
 
@@ -354,7 +357,7 @@ const microsoftCallback = async (req, res) => {
             const domain = extractDomain(email);
             if (!domain) {
                 return res.redirect(
-                    `${frontendUrl}/login?auth=failed&message=Not a valid Domain`
+                    `${frontendUrl}/login?auth=failed&message=${encodeURIComponent('Not a valid Domain')}`
                 );
             }
 
@@ -364,39 +367,44 @@ const microsoftCallback = async (req, res) => {
 
             if (!organization) {
                 return res.redirect(
-                    `${frontendUrl}/login?auth=failed&message=No organization found with this email domain&createOrganization=true`
+                    `${frontendUrl}/login?auth=failed&message=${encodeURIComponent('No organization found with this email domain')}&createOrganization=true`
                 );
             }
             let user = await prisma.user.findUnique({ where: { email } });
 
             if (user) {
                 return res.redirect(
-                    `${frontendUrl}/login?auth=failed&message=User already registered. Please log in.`
+                    `${frontendUrl}/login?auth=failed&message=${encodeURIComponent('User already registered. Please log in.')}`
                 );
             }
 
-            user = await prisma.user.create({
-                data: {
-                    email,
-                    name: name,
-                    authProvider: 'MICROSOFT'
-                }
-            });
-            const result = await prisma.organizationMember.create({
-                data: {
-                    organizationId: organization.id,
-                    userId: user.id,
-                    role: 'EMPLOYEE'
-                }
+            user = await prisma.$transaction(async (tx) => {
+                const createdUser = await tx.user.create({
+                    data: {
+                        email,
+                        name: name,
+                        authProvider: 'MICROSOFT'
+                    }
+                });
+
+                await tx.organizationMember.create({
+                    data: {
+                        organizationId: organization.id,
+                        userId: createdUser.id,
+                        role: 'EMPLOYEE'
+                    }
+                });
+
+                return createdUser;
             });
             return res.redirect(
-                `${frontendUrl}/login?auth=success&message=Account created successfully. Please login`
+                `${frontendUrl}/login?auth=success&message=${encodeURIComponent('Account created successfully. Please login')}`
             );
         } else {
             const user = await prisma.user.findUnique({ where: { email } });
             if (!user) {
                 return res.redirect(
-                    `${frontendUrl}/login?auth=failed&message=User not found`
+                    `${frontendUrl}/login?auth=failed&message=${encodeURIComponent('User not found')}`
                 );
             }
             const refreshToken = generateRefreshToken(user);
