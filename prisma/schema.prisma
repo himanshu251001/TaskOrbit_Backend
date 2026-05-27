@@ -10,6 +10,7 @@ datasource db {
 model Organization {
   id                 Int                  @id @default(autoincrement())
   name               String
+  domain             String             @unique
   createdAt          DateTime             @default(now())
   OrganizationMember OrganizationMember[]
   Project            Project[]
@@ -85,7 +86,8 @@ model User {
   id                           Int                  @id @default(autoincrement())
   name                         String?
   email                        String               @unique
-  passwordHash                 String
+  passwordHash                 String?
+  authProvider                 String               @default("LOCAL")
   refreshToken                 String?
   createdAt                    DateTime             @default(now())
   updatedAt                    DateTime             @updatedAt

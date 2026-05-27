@@ -43,7 +43,7 @@ export const getOrganizationMembers = async (req, res) => {
 export const updateProfile = async (req, res) => {
     try {
         const { id } = req.params;
-        const { password, ...rest } = req.body;
+        const { password, name, ...rest } = req.body;
         if (password) {
             const hashedPassword = await argon2.hash(password);
             rest.passwordHash = hashedPassword;

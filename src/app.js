@@ -7,6 +7,7 @@ import { dashboardRoutes, taskRoutes, organizationRoutes, userRoutes, projectRou
 import authMiddleware from './middlewares/authMiddleware.js';
 import { initializeSocket } from './socket/index.js';
 import cors from "cors";
+import { initializeOidc } from './config/oidc.js';
 
 const app = express();
 
@@ -29,7 +30,7 @@ const Logger = (req, res, next) => {
 
     console.log(`${req.method} ${req.url}  ${JSON.stringify(req.body)}`);
     next();
-}
+};
 
 app.use(Logger);
 
@@ -47,6 +48,7 @@ app.use('/projects', projectRoutes);
 app.use('/events', eventRoutes);
 
 const io = initializeSocket(httpServer);
+await initializeOidc();
 
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {
